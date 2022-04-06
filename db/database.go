@@ -11,14 +11,13 @@ type Options struct {
 }
 
 func NewConnection(opt Options) *sql.DB {
-	driverDNS := strings.SplitN(opt.DNS, ":", 2)
-	driver, dns := driverDNS[0], driverDNS[1]
-	db, err := sql.Open(driver, dns)
+	driver := strings.SplitN(opt.DNS, ":", 2)[0]
+	db, err := sql.Open(driver, opt.DNS)
 	if err != nil {
 		log.Fatal(err)
 	}
 	if err := db.Ping(); err != nil {
-		log.Panicln("db not connected!")
+		log.Panicln("db not connected! ", err)
 	}
 	return db
 }

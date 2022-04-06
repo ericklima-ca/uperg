@@ -36,7 +36,7 @@ func (r *Router) GetServer() *gin.Engine {
 	engine := gin.Default()
 
 	uploadAPI := engine.Group("api/")
-	uploadAPI.POST("/api/uploads", r.UploadHandler.UploadFiles)
+	uploadAPI.POST("/uploads", r.UploadHandler.UploadFiles)
 
 	return engine
 }
