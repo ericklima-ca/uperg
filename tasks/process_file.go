@@ -1,4 +1,3 @@
-// IN DEV...
 package tasks
 
 import (
@@ -91,8 +90,18 @@ func readAndSaveData(filename string) {
 			valuesTemplate += ","
 		}
 	}
-	insertTemplate := "INSERT INTO %s VALUES ( %s )"
-	insertIntoSql := fmt.Sprintf(insertTemplate, fname, valuesTemplate)
+	insertTemplate := "INSERT INTO %s (%s) VALUES ( %s )"
+	
+	columnName := ""
+	cc := 0
+	for _, v := range firstRow {
+		cc++
+		columnName += fmt.Sprintf(`"%s"`, v)
+		if cc != len(firstRow) {
+			columnName += ","
+		}
+	}
+	insertIntoSql := fmt.Sprintf(insertTemplate, fname, columnName, valuesTemplate)
 
 	database := db.NewConnection(db.Options{
 		DNS: os.Getenv("DATABASE_URL"),
@@ -104,7 +113,7 @@ func readAndSaveData(filename string) {
 
 	stmt, err := tx.Prepare(insertIntoSql)
 	if err != nil {
-		log.Panic(err, insertIntoSql)
+		log.Panic(string(debug.Stack()), err, insertIntoSql)
 	}
 
 	for rows.Next() {
@@ -113,7 +122,7 @@ func readAndSaveData(filename string) {
 		}
 		rowSlice, err := rows.Columns()
 		if err != nil {
-			log.Fatal(err)
+			log.Panic(string(debug.Stack()), err)
 		}
 		execStatement(rowSlice, stmt)
 	}
@@ -124,11 +133,13 @@ func readAndSaveData(filename string) {
 
 func execStatement(args []string, stmt *sql.Stmt) {
 	var listInterface = []interface{}{}
+	log.Println(args)
 	for _, v := range args {
 		listInterface = append(listInterface, v)
 	}
+	log.Println(listInterface...)
 	_, err := stmt.Exec(listInterface...)
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(string(debug.Stack()), err)
 	}
 }
